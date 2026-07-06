@@ -1,0 +1,10 @@
+{
+  "name": "ki-such-index",
+  "version": "1.0.0",
+  "description": "Blitzschneller Suchindex für HTML-KIs",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo \"Öffne index.html im Browser\""
+  },
+  "dependencies": {}
+}
