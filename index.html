@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KI Live-Indexer & Suchmaschine</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .search-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #1a73e8;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 18px;
+            font-size: 16px;
+            border: 1px solid #dadce0;
+            border-radius: 24px;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.2);
+        }
+        button {
+            padding: 12px 28px;
+            font-size: 16px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #1557b0; }
+        
+        /* Sektionen für die KI-Antwort */
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 25px;
+            color: #202124;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 5px;
+        }
+        .definition-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1a73e8;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        .result-item {
+            background: #fff;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+        }
+        .result-item a {
+            color: #1a0dab;
+            font-size: 18px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .result-item a:hover { text-decoration: underline; }
+        .result-item .url {
+            color: #006621;
+            font-size: 13px;
+            display: block;
+            margin-top: 2px;
+        }
+        .loader {
+            display: none;
+            color: #70757a;
+            font-style: italic;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="search-container">
+    <h1>KI Live-Suche & Definition</h1>
+    
+    <div class="search-box">
+        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. Quantencomputer, Photosynthese)...">
+        <button onclick="starteLiveSuche()">Internet durchsuchen</button>
+    </div>
+
+    <div id="ladeStatus" class="loader">KI durchsucht das Internet live... Bitte warten...</div>
+
+    <div id="ausgabeBereich"></div>
+</div>
+
+<script>
+async function starteLiveSuche() {
+    const begriff = document.getElementById("suchEingabe").value.trim();
+    const ausgabe = document.getElementById("ausgabeBereich");
+    const loader = document.getElementById("ladeStatus");
+
+    if (begriff === "") {
+        ausgabe.innerHTML = "<p style='color:red;'>Bitte gib einen Begriff ein.</p>";
+        return;
+    }
+
+    // Lade-Animation anzeigen, alte Ergebnisse löschen
+    loader.style.display = "block";
+    ausgabe.innerHTML = "";
+
+    try {
+        // Nutzen der Wikipedia-API (erlaubt CORS-Anfragen direkt aus HTML-Dateien)
+        // Holt gleichzeitig die Definition (Extracts) und Links (Opensearch) [1]
+        const apiDefinitionUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&origin=*`;
+        const apiLinksUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&limit=5&origin=*`;
+
+        // Beide Anfragen parallel im Hintergrund starten
+        const [defAntwort, linksAntwort] = await Promise.all([
+            fetch(apiDefinitionUrl),
+            fetch(apiLinksUrl)
+        ]);
+
+        const defDaten = await defAntwort.json();
+        const linksDaten = await linksAntwort.json();
+
+        loader.style.display = "none"; // Laden beendet
+
+        // --- 1. BEDEUTUNG / DEFINITION ANZEIGEN ---
+        const pages = defDaten.query.pages;
+        const pageId = Object.keys(pages)[0];
+        let definitionText = pages[pageId].extract;
+
+        if (!definitionText || pageId === "-1") {
+            definitionText = `Keine direkte Definition für "${begriff}" im Internet gefunden. Ich versuche dennoch, Ergebnisse anzuzeigen.`;
+        }
+
+        let htmlErgebnis = `
+            <div class="section-title">🤖 KI-Erklärung: Was bedeutet "${begriff}"?</div>
+            <div class="definition-box">${definitionText}</div>
+        `;
+
+        // --- 2. WEITERE ERGEBNISSE / LINKS ANZEIGEN ---
+        htmlErgebnis += `<div class="section-title">🌐 Live-Ergebnisse aus dem Web</div>`;
+
+        const titelListe = linksDaten[1] || [];
+        const beschreibungsListe = linksDaten[2] || [];
+        const urlListe = linksDaten[3] || [];
+
+        if (urlListe.length === 0) {
+            htmlErgebnis += `<p>Keine passenden Web-Links gefunden.</p>`;
+        } else {
+            // Schleife durch alle gefundenen Internet-Links
+            for (let i = 0; i < urlListe.length; i++) {
+                htmlErgebnis += `
+                    <div class="result-item">
+                        <a href="${urlListe[i]}" target="_blank">${titelListe[i]}</a>
+                        <span class="url">${urlListe[i]}</span>
+                        <p style="margin: 5px 0 0 0; font-size:14px; color:#545454;">${beschreibungsListe[i] || 'Klicke auf den Link, um die Seite zu öffnen.'}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Alles auf einmal in die HTML-Seite schreiben
+        ausgabe.innerHTML = htmlErgebnis;
+
+    } catch (fehler) {
+        loader.style.display = "none";
+        ausgabe.innerHTML = `<p style='color:red;'>Fehler beim Durchsuchen des Internets: ${fehler.message}</p>`;
+    }
+}
+
+// Enter-Taste abfangen
+document.getElementById("suchEingabe").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") { starteLiveSuche(); }
+});
+</script>
+
+</body>
+</html>
