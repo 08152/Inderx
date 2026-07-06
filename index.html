@@ -3,112 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KI Live-Indexer & Suchmaschine</title>
+    <title>AI Live Search & Indexer</title>
     <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #202124;
+            --text-sub: #4d5156;
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --border: #dadce0;
+            --accent-bg: #e8f0fe;
+            --accent-text: #1967d2;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            background-color: #f4f6f9;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
         }
+
         .search-container {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 750px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.03);
         }
-        h1 {
-            color: #1a73e8;
-            margin-top: 0;
-            font-size: 24px;
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
         }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            background: linear-gradient(45deg, #1a73e8, #4285f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-sub);
+            margin: 0;
+            font-size: 14px;
+        }
+
         .search-box {
             display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 6px 6px 6px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            transition: all 0.2s ease-in-out;
+            align-items: center;
         }
+
+        .search-box:focus-within {
+            box-shadow: 0 4px 12px rgba(32,33,36,0.15);
+            border-color: transparent;
+        }
+
         input[type="text"] {
             flex: 1;
-            padding: 12px 18px;
-            font-size: 16px;
-            border: 1px solid #dadce0;
-            border-radius: 24px;
+            border: none;
             outline: none;
-        }
-        input[type="text"]:focus {
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26,115,232,0.2);
-        }
-        button {
-            padding: 12px 28px;
             font-size: 16px;
-            background-color: #1a73e8;
+            color: var(--text-main);
+            background: transparent;
+        }
+
+        button {
+            background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 24px;
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
+            transition: background 0.15s ease;
         }
-        button:hover { background-color: #1557b0; }
-        
-        /* Sektionen für die KI-Antwort */
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .loader-container {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 25px;
-            color: #202124;
-            border-bottom: 2px solid #1a73e8;
-            padding-bottom: 5px;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-sub);
+            margin: 35px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .definition-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #1a73e8;
-            padding: 15px;
-            margin-top: 10px;
-            border-radius: 4px;
-            line-height: 1.5;
+
+        .definition-card {
+            background-color: var(--accent-bg);
+            color: var(--accent-text);
+            padding: 20px;
+            border-radius: 16px;
+            line-height: 1.6;
+            font-size: 15px;
+            border: 1px solid rgba(26,115,232,0.1);
+            animation: fadeIn 0.4s ease-out;
         }
-        .result-item {
-            background: #fff;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 8px;
-            border: 1px solid #dadce0;
+
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.5s ease-out;
         }
-        .result-item a {
-            color: #1a0dab;
+
+        .result-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: var(--primary);
+        }
+
+        .result-card a {
+            color: var(--primary);
             font-size: 18px;
             text-decoration: none;
             font-weight: 600;
+            display: inline-block;
+            margin-bottom: 4px;
         }
-        .result-item a:hover { text-decoration: underline; }
-        .result-item .url {
+
+        .result-card a:hover {
+            text-decoration: underline;
+        }
+
+        .result-card .url {
             color: #006621;
             font-size: 13px;
             display: block;
-            margin-top: 2px;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .loader {
-            display: none;
-            color: #70757a;
-            font-style: italic;
-            margin-top: 15px;
+
+        .result-card p {
+            margin: 0;
+            color: var(--text-sub);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
 <div class="search-container">
-    <h1>KI Live-Suche & Definition</h1>
+    <div class="header">
+        <h1>AI Live Search Engine</h1>
+        <p>Echtzeit-Definitionen und Internet-Ergebnisse ohne Ladezeit-Verzögerung</p>
+    </div>
     
     <div class="search-box">
-        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. Quantencomputer, Photosynthese)...">
-        <button onclick="starteLiveSuche()">Internet durchsuchen</button>
+        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. Blockchain, Gravitation)..." autocomplete="off">
+        <button onclick="starteLiveSuche()">Suchen</button>
     </div>
 
-    <div id="ladeStatus" class="loader">KI durchsucht das Internet live... Bitte warten...</div>
+    <div id="loader" class="loader-container">
+        <div class="spinner"></div>
+        <p style="font-size: 14px; color: var(--text-sub); margin-top: 10px;">Durchforste das Internet...</p>
+    </div>
 
     <div id="ausgabeBereich"></div>
 </div>
@@ -117,24 +225,18 @@
 async function starteLiveSuche() {
     const begriff = document.getElementById("suchEingabe").value.trim();
     const ausgabe = document.getElementById("ausgabeBereich");
-    const loader = document.getElementById("ladeStatus");
+    const loader = document.getElementById("loader");
 
-    if (begriff === "") {
-        ausgabe.innerHTML = "<p style='color:red;'>Bitte gib einen Begriff ein.</p>";
-        return;
-    }
+    if (begriff === "") return;
 
-    // Lade-Animation anzeigen, alte Ergebnisse löschen
     loader.style.display = "block";
     ausgabe.innerHTML = "";
 
     try {
-        // Nutzen der Wikipedia-API (erlaubt CORS-Anfragen direkt aus HTML-Dateien)
-        // Holt gleichzeitig die Definition (Extracts) und Links (Opensearch) [1]
+        // 1. Definitionen und Web-Links parallel anfordern
         const apiDefinitionUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&origin=*`;
-        const apiLinksUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&limit=5&origin=*`;
+        const apiLinksUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&limit=4&origin=*`;
 
-        // Beide Anfragen parallel im Hintergrund starten
         const [defAntwort, linksAntwort] = await Promise.all([
             fetch(apiDefinitionUrl),
             fetch(apiLinksUrl)
@@ -143,56 +245,53 @@ async function starteLiveSuche() {
         const defDaten = await defAntwort.json();
         const linksDaten = await linksAntwort.json();
 
-        loader.style.display = "none"; // Laden beendet
+        loader.style.display = "none";
 
-        // --- 1. BEDEUTUNG / DEFINITION ANZEIGEN ---
+        // 2. Bedeutung/Definition verarbeiten
         const pages = defDaten.query.pages;
-        const pageId = Object.keys(pages)[0];
+        const pageId = Object.keys(pages);
         let definitionText = pages[pageId].extract;
 
-        if (!definitionText || pageId === "-1") {
-            definitionText = `Keine direkte Definition für "${begriff}" im Internet gefunden. Ich versuche dennoch, Ergebnisse anzuzeigen.`;
+        if (!definitionText || pageId == "-1") {
+            definitionText = `Keine genaue Definition für "${begriff}" im Index gefunden. Siehe Web-Ergebnisse unten.`;
         }
 
         let htmlErgebnis = `
-            <div class="section-title">🤖 KI-Erklärung: Was bedeutet "${begriff}"?</div>
-            <div class="definition-box">${definitionText}</div>
+            <div class="section-title">💡 Bedeutung / Definition</div>
+            <div class="definition-card">${definitionText}</div>
         `;
 
-        // --- 2. WEITERE ERGEBNISSE / LINKS ANZEIGEN ---
-        htmlErgebnis += `<div class="section-title">🌐 Live-Ergebnisse aus dem Web</div>`;
+        // 3. Web-Suchergebnisse (Links) verarbeiten
+        htmlErgebnis += `<div class="section-title">🌐 Web-Ergebnisse</div><div class="results-list">`;
 
         const titelListe = linksDaten[1] || [];
         const beschreibungsListe = linksDaten[2] || [];
         const urlListe = linksDaten[3] || [];
 
         if (urlListe.length === 0) {
-            htmlErgebnis += `<p>Keine passenden Web-Links gefunden.</p>`;
+            htmlErgebnis += `<p style="color: var(--text-sub);">Keine Web-Links gefunden.</p>`;
         } else {
-            // Schleife durch alle gefundenen Internet-Links
             for (let i = 0; i < urlListe.length; i++) {
                 htmlErgebnis += `
-                    <div class="result-item">
+                    <div class="result-card">
                         <a href="${urlListe[i]}" target="_blank">${titelListe[i]}</a>
                         <span class="url">${urlListe[i]}</span>
-                        <p style="margin: 5px 0 0 0; font-size:14px; color:#545454;">${beschreibungsListe[i] || 'Klicke auf den Link, um die Seite zu öffnen.'}</p>
+                        <p>${beschreibungsListe[i] || 'Klicke auf den Link, um mehr zu erfahren.'}</p>
                     </div>
                 `;
             }
         }
-
-        // Alles auf einmal in die HTML-Seite schreiben
+        htmlErgebnis += `</div>`;
         ausgabe.innerHTML = htmlErgebnis;
 
     } catch (fehler) {
         loader.style.display = "none";
-        ausgabe.innerHTML = `<p style='color:red;'>Fehler beim Durchsuchen des Internets: ${fehler.message}</p>`;
+        ausgabe.innerHTML = `<p style='color:red;'>Netzwerkfehler: ${fehler.message}</p>`;
     }
 }
 
-// Enter-Taste abfangen
 document.getElementById("suchEingabe").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") { starteLiveSuche(); }
+    if (e.key === "Enter") starteLiveSuche();
 });
 </script>
 
