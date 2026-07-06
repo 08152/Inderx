@@ -1,10 +1,14 @@
 {
-  "name": "ki-such-index",
+  "name": "ai-live-indexer",
   "version": "1.0.0",
-  "description": "Blitzschneller Suchindex für HTML-KIs",
-  "main": "index.html",
+  "description": "Live Web Search via Render Backend",
+  "main": "server.js",
   "scripts": {
-    "start": "echo \"Öffne index.html im Browser\""
+    "start": "node server.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "html-entities": "^2.5.2"
+  }
 }
