@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Live Search & Indexer</title>
+    <title>AI Live Search & Safe Indexer</title>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -16,10 +16,12 @@
             --accent-bg: #e8f0fe;
             --accent-text: #1967d2;
             --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            --safe-color: #137333;
+            --safe-bg: #e6f4ea;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
@@ -47,15 +49,21 @@
             font-size: 28px;
             font-weight: 700;
             margin: 0 0 10px 0;
-            background: linear-gradient(45deg, #1a73e8, #4285f4);
+            background: linear-gradient(45deg, #1a73e8, #34a853);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header p {
-            color: var(--text-sub);
-            margin: 0;
-            font-size: 14px;
+        .status-box {
+            background-color: var(--safe-bg);
+            color: var(--safe-color);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-align: center;
+            display: none;
         }
 
         .search-box {
@@ -95,9 +103,7 @@
             transition: background 0.15s ease;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+        button:hover { background-color: var(--primary-hover); }
 
         .loader-container {
             display: none;
@@ -121,15 +127,12 @@
         }
 
         .section-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: var(--text-sub);
             margin: 35px 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .definition-card {
@@ -140,14 +143,12 @@
             line-height: 1.6;
             font-size: 15px;
             border: 1px solid rgba(26,115,232,0.1);
-            animation: fadeIn 0.4s ease-out;
         }
 
         .results-list {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            animation: fadeIn 0.5s ease-out;
         }
 
         .result-card {
@@ -155,13 +156,6 @@
             padding: 20px;
             border-radius: 16px;
             border: 1px solid var(--border);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .result-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-color: var(--primary);
         }
 
         .result-card a {
@@ -169,22 +163,13 @@
             font-size: 18px;
             text-decoration: none;
             font-weight: 600;
-            display: inline-block;
-            margin-bottom: 4px;
-        }
-
-        .result-card a:hover {
-            text-decoration: underline;
         }
 
         .result-card .url {
             color: #006621;
             font-size: 13px;
             display: block;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            margin: 4px 0 8px 0;
         }
 
         .result-card p {
@@ -193,47 +178,65 @@
             font-size: 14px;
             line-height: 1.5;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body>
 
 <div class="search-container">
     <div class="header">
-        <h1>AI Live Search Engine</h1>
-        <p>Echtzeit-Definitionen und Internet-Ergebnisse ohne Ladezeit-Verzögerung</p>
+        <h1>AI Safe-Indexer & Search</h1>
+        <p>Live suchen, Ergebnisse automatisch sicher im Speicher sichern</p>
     </div>
+
+    <div id="statusMeldung" class="status-box"></div>
     
     <div class="search-box">
-        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. Blockchain, Gravitation)..." autocomplete="off">
-        <button onclick="starteLiveSuche()">Suchen</button>
+        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. KI, Internet)..." autocomplete="off">
+        <button onclick="starteSucheODerLade()">Suchen / Laden</button>
     </div>
 
     <div id="loader" class="loader-container">
         <div class="spinner"></div>
-        <p style="font-size: 14px; color: var(--text-sub); margin-top: 10px;">Durchforste das Internet...</p>
+        <p style="font-size: 14px; color: var(--text-sub); margin-top: 10px;">Durchforste das Internet live...</p>
     </div>
 
     <div id="ausgabeBereich"></div>
 </div>
 
 <script>
-async function starteLiveSuche() {
-    const begriff = document.getElementById("suchEingabe").value.trim();
+// Hilfsfunktion: Zeigt eine grüne Statusmeldung an
+function zeigeStatus(text) {
+    const box = document.getElementById("statusMeldung");
+    box.innerText = text;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; }, 4000);
+}
+
+// Hauptfunktion: Prüft erst das "Save-Backup", sonst Live-Suche
+async function starteSucheODerLade() {
+    const begriff = document.getElementById("suchEingabe").value.trim().toLowerCase();
     const ausgabe = document.getElementById("ausgabeBereich");
     const loader = document.getElementById("loader");
 
     if (begriff === "") return;
 
-    loader.style.display = "block";
     ausgabe.innerHTML = "";
 
+    // 1. SCHRITT: Im sicheren Browser-Speicher nachsehen
+    const gespeicherteDaten = localStorage.getItem(`suche_${begriff}`);
+    
+    if (gespeicherteDaten) {
+        // Daten existieren bereits! Sofort (0ms) ohne Internet laden
+        const daten = JSON.parse(gespeicherteDaten);
+        zeigeStatus("⚡ Daten blitzschnell aus dem sicheren Speicher geladen!");
+        rendereErgebnisse(daten.definition, daten.links, ausgabe);
+        return;
+    }
+
+    // 2. SCHRITT: Wenn nicht gespeichert, live im Internet suchen
+    loader.style.display = "block";
+
     try {
-        // 1. Definitionen und Web-Links parallel anfordern
         const apiDefinitionUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&origin=*`;
         const apiLinksUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&limit=4&origin=*`;
 
@@ -247,51 +250,63 @@ async function starteLiveSuche() {
 
         loader.style.display = "none";
 
-        // 2. Bedeutung/Definition verarbeiten
+        // Definition extrahieren
         const pages = defDaten.query.pages;
         const pageId = Object.keys(pages);
-        let definitionText = pages[pageId].extract;
+        let definitionText = pages[pageId].extract || `Keine direkte Definition für "${begriff}" gefunden.`;
 
-        if (!definitionText || pageId == "-1") {
-            definitionText = `Keine genaue Definition für "${begriff}" im Index gefunden. Siehe Web-Ergebnisse unten.`;
-        }
+        // 3. SCHRITT: Daten für die Zukunft SICHER SPEICHERN (Save)
+        const suchPaket = {
+            definition: definitionText,
+            links: linksDaten
+        };
+        
+        // Speichert es dauerhaft im Browser unter dem Suchbegriff ab
+        localStorage.setItem(`suche_${begriff}`, JSON.stringify(suchPaket));
+        zeigeStatus("💾 Ergebnisse erfolgreich für die KI gespeichert!");
 
-        let htmlErgebnis = `
-            <div class="section-title">💡 Bedeutung / Definition</div>
-            <div class="definition-card">${definitionText}</div>
-        `;
-
-        // 3. Web-Suchergebnisse (Links) verarbeiten
-        htmlErgebnis += `<div class="section-title">🌐 Web-Ergebnisse</div><div class="results-list">`;
-
-        const titelListe = linksDaten[1] || [];
-        const beschreibungsListe = linksDaten[2] || [];
-        const urlListe = linksDaten[3] || [];
-
-        if (urlListe.length === 0) {
-            htmlErgebnis += `<p style="color: var(--text-sub);">Keine Web-Links gefunden.</p>`;
-        } else {
-            for (let i = 0; i < urlListe.length; i++) {
-                htmlErgebnis += `
-                    <div class="result-card">
-                        <a href="${urlListe[i]}" target="_blank">${titelListe[i]}</a>
-                        <span class="url">${urlListe[i]}</span>
-                        <p>${beschreibungsListe[i] || 'Klicke auf den Link, um mehr zu erfahren.'}</p>
-                    </div>
-                `;
-            }
-        }
-        htmlErgebnis += `</div>`;
-        ausgabe.innerHTML = htmlErgebnis;
+        // Ergebnisse auf dem Bildschirm anzeigen
+        rendereErgebnisse(definitionText, linksDaten, ausgabe);
 
     } catch (fehler) {
         loader.style.display = "none";
-        ausgabe.innerHTML = `<p style='color:red;'>Netzwerkfehler: ${fehler.message}</p>`;
+        ausgabe.innerHTML = `<p style='color:red;'>Fehler: ${fehler.message}</p>`;
     }
 }
 
+// Hilfsfunktion, um das HTML auf den Bildschirm zu zeichnen
+function rendereErgebnisse(definition, links, zielElement) {
+    let html = `
+        <div class="section-title">💡 Bedeutung / Definition</div>
+        <div class="definition-card">${definition}</div>
+        <div class="section-title">🌐 Web-Ergebnisse</div>
+        <div class="results-list">
+    `;
+
+    const titelListe = links[1] || [];
+    const beschreibungsListe = links[2] || [];
+    const urlListe = links[3] || [];
+
+    if (urlListe.length === 0) {
+        html += `<p style="color: var(--text-sub);">Keine Web-Links gefunden.</p>`;
+    } else {
+        for (let i = 0; i < urlListe.length; i++) {
+            html += `
+                <div class="result-card">
+                    <a href="${urlListe[i]}" target="_blank">${titelListe[i]}</a>
+                    <span class="url">${urlListe[i]}</span>
+                    <p>${beschreibungsListe[i] || 'Klicke für mehr Details.'}</p>
+                </div>
+            `;
+        }
+    }
+    html += `</div>`;
+    zielElement.innerHTML = html;
+}
+
+// Enter-Taste erlauben
 document.getElementById("suchEingabe").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") starteLiveSuche();
+    if (e.key === "Enter") starteSucheODerLade();
 });
 </script>
 
