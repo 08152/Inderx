@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Live Search & Safe Indexer</title>
+    <title>AI Server Search & Indexer</title>
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -16,297 +16,98 @@
             --accent-bg: #e8f0fe;
             --accent-text: #1967d2;
             --shadow: 0 4px 20px rgba(0,0,0,0.05);
-            --safe-color: #137333;
-            --safe-bg: #e6f4ea;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .search-container {
-            width: 100%;
-            max-width: 750px;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(0,0,0,0.03);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0 0 10px 0;
-            background: linear-gradient(45deg, #1a73e8, #34a853);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .status-box {
-            background-color: var(--safe-bg);
-            color: var(--safe-color);
-            padding: 10px 15px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 25px;
-            text-align: center;
-            display: none;
-        }
-
-        .search-box {
-            display: flex;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 6px 6px 6px 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-            transition: all 0.2s ease-in-out;
-            align-items: center;
-        }
-
-        .search-box:focus-within {
-            box-shadow: 0 4px 12px rgba(32,33,36,0.15);
-            border-color: transparent;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            color: var(--text-main);
-            background: transparent;
-        }
-
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 24px;
-            padding: 12px 28px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s ease;
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+        .search-container { width: 100%; max-width: 750px; background: var(--card-bg); padding: 40px; border-radius: 24px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.03); }
+        .header { text-align: center; margin-bottom: 35px; }
+        .header h1 { font-size: 28px; font-weight: 700; margin: 0 0 10px 0; color: var(--primary); }
+        .search-box { display: flex; background: var(--card-bg); border: 1px solid var(--border); border-radius: 30px; padding: 6px 6px 6px 20px; align-items: center; }
+        input[type="text"] { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+        button { background-color: var(--primary); color: white; border: none; border-radius: 24px; padding: 12px 28px; font-size: 15px; font-weight: 600; cursor: pointer; }
         button:hover { background-color: var(--primary-hover); }
-
-        .loader-container {
-            display: none;
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--border);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            display: inline-block;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-sub);
-            margin: 35px 0 15px 0;
-        }
-
-        .definition-card {
-            background-color: var(--accent-bg);
-            color: var(--accent-text);
-            padding: 20px;
-            border-radius: 16px;
-            line-height: 1.6;
-            font-size: 15px;
-            border: 1px solid rgba(26,115,232,0.1);
-        }
-
-        .results-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .result-card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-
-        .result-card a {
-            color: var(--primary);
-            font-size: 18px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .result-card .url {
-            color: #006621;
-            font-size: 13px;
-            display: block;
-            margin: 4px 0 8px 0;
-        }
-
-        .result-card p {
-            margin: 0;
-            color: var(--text-sub);
-            font-size: 14px;
-            line-height: 1.5;
-        }
+        .loader { display: none; text-align: center; margin: 30px 0; color: var(--text-sub); font-style: italic; }
+        .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); margin: 35px 0 15px 0; }
+        .definition-card { background-color: var(--accent-bg); color: var(--accent-text); padding: 20px; border-radius: 16px; line-height: 1.6; }
+        .results-list { display: flex; flex-direction: column; gap: 16px; }
+        .result-card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
+        .result-card a { color: var(--primary); font-size: 18px; text-decoration: none; font-weight: 600; }
+        .result-card .url { color: #006621; font-size: 13px; display: block; margin: 4px 0 8px 0; }
+        .result-card p { margin: 0; color: var(--text-sub); font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="search-container">
     <div class="header">
-        <h1>AI Safe-Indexer & Search</h1>
-        <p>Live suchen, Ergebnisse automatisch sicher im Speicher sichern</p>
+        <h1>Render Backend Search</h1>
+        <p>Echte Internet-Verzeichnisse direkt über den Server geladen</p>
     </div>
-
-    <div id="statusMeldung" class="status-box"></div>
     
     <div class="search-box">
-        <input type="text" id="suchEingabe" placeholder="Begriff eingeben (z.B. KI, Internet)..." autocomplete="off">
-        <button onclick="starteSucheODerLade()">Suchen / Laden</button>
+        <input type="text" id="suchEingabe" placeholder="Echtes Internet durchsuchen..." autocomplete="off">
+        <button onclick="starteWebSuche()">Suchen</button>
     </div>
 
-    <div id="loader" class="loader-container">
-        <div class="spinner"></div>
-        <p style="font-size: 14px; color: var(--text-sub); margin-top: 10px;">Durchforste das Internet live...</p>
-    </div>
-
+    <div id="loader" class="loader">Der Render-Server durchsucht das Web live...</div>
     <div id="ausgabeBereich"></div>
 </div>
 
 <script>
-// Hilfsfunktion: Zeigt eine grüne Statusmeldung an
-function zeigeStatus(text) {
-    const box = document.getElementById("statusMeldung");
-    box.innerText = text;
-    box.style.display = "block";
-    setTimeout(() => { box.style.display = "none"; }, 4000);
-}
-
-// Hauptfunktion: Prüft erst das "Save-Backup", sonst Live-Suche
-async function starteSucheODerLade() {
-    const begriff = document.getElementById("suchEingabe").value.trim().toLowerCase();
+async function starteWebSuche() {
+    const begriff = document.getElementById("suchEingabe").value.trim();
     const ausgabe = document.getElementById("ausgabeBereich");
     const loader = document.getElementById("loader");
 
     if (begriff === "") return;
-
     ausgabe.innerHTML = "";
-
-    // 1. SCHRITT: Im sicheren Browser-Speicher nachsehen
-    const gespeicherteDaten = localStorage.getItem(`suche_${begriff}`);
-    
-    if (gespeicherteDaten) {
-        // Daten existieren bereits! Sofort (0ms) ohne Internet laden
-        const daten = JSON.parse(gespeicherteDaten);
-        zeigeStatus("⚡ Daten blitzschnell aus dem sicheren Speicher geladen!");
-        rendereErgebnisse(daten.definition, daten.links, ausgabe);
-        return;
-    }
-
-    // 2. SCHRITT: Wenn nicht gespeichert, live im Internet suchen
     loader.style.display = "block";
 
     try {
-        const apiDefinitionUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&origin=*`;
-        const apiLinksUrl = `https://wikipedia.org{encodeURIComponent(begriff)}&limit=4&origin=*`;
+        // Erkennt automatisch, ob die App lokal oder live auf Render läuft
+        const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3000' 
+            : window.location.origin;
 
-        const [defAntwort, linksAntwort] = await Promise.all([
-            fetch(apiDefinitionUrl),
-            fetch(apiLinksUrl)
-        ]);
-
-        const defDaten = await defAntwort.json();
-        const linksDaten = await linksAntwort.json();
-
+        // Anfrage an das eigene Render-Backend senden
+        const antwort = await fetch(`${host}/api/search?q=${encodeURIComponent(begriff)}`);
+        const daten = await antwort.json();
+        
         loader.style.display = "none";
 
-        // Definition extrahieren
-        const pages = defDaten.query.pages;
-        const pageId = Object.keys(pages);
-        let definitionText = pages[pageId].extract || `Keine direkte Definition für "${begriff}" gefunden.`;
+        if (daten.error) {
+            ausgabe.innerHTML = `<p style="color:red;">Server-Fehler: ${daten.error}</p>`;
+            return;
+        }
 
-        // 3. SCHRITT: Daten für die Zukunft SICHER SPEICHERN (Save)
-        const suchPaket = {
-            definition: definitionText,
-            links: linksDaten
-        };
-        
-        // Speichert es dauerhaft im Browser unter dem Suchbegriff ab
-        localStorage.setItem(`suche_${begriff}`, JSON.stringify(suchPaket));
-        zeigeStatus("💾 Ergebnisse erfolgreich für die KI gespeichert!");
+        // HTML zeichnen
+        let html = `
+            <div class="section-title">💡 Bedeutung / Erklärung</div>
+            <div class="definition-card">${daten.definition}</div>
+            <div class="section-title">🌐 Web-Ergebnisse (Echte Internet-URLs)</div>
+            <div class="results-list">
+        `;
 
-        // Ergebnisse auf dem Bildschirm anzeigen
-        rendereErgebnisse(definitionText, linksDaten, ausgabe);
+        daten.links.forEach(item => {
+            html += `
+                <div class="result-card">
+                    <a href="${item.url}" target="_blank">${item.titel}</a>
+                    <span class="url">${item.url}</span>
+                    <p>${item.text}</p>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        ausgabe.innerHTML = html;
 
     } catch (fehler) {
         loader.style.display = "none";
-        ausgabe.innerHTML = `<p style='color:red;'>Fehler: ${fehler.message}</p>`;
+        ausgabe.innerHTML = `<p style="color:red;">Verbindungsfehler zum Server: ${fehler.message}</p>`;
     }
 }
 
-// Hilfsfunktion, um das HTML auf den Bildschirm zu zeichnen
-function rendereErgebnisse(definition, links, zielElement) {
-    let html = `
-        <div class="section-title">💡 Bedeutung / Definition</div>
-        <div class="definition-card">${definition}</div>
-        <div class="section-title">🌐 Web-Ergebnisse</div>
-        <div class="results-list">
-    `;
-
-    const titelListe = links[1] || [];
-    const beschreibungsListe = links[2] || [];
-    const urlListe = links[3] || [];
-
-    if (urlListe.length === 0) {
-        html += `<p style="color: var(--text-sub);">Keine Web-Links gefunden.</p>`;
-    } else {
-        for (let i = 0; i < urlListe.length; i++) {
-            html += `
-                <div class="result-card">
-                    <a href="${urlListe[i]}" target="_blank">${titelListe[i]}</a>
-                    <span class="url">${urlListe[i]}</span>
-                    <p>${beschreibungsListe[i] || 'Klicke für mehr Details.'}</p>
-                </div>
-            `;
-        }
-    }
-    html += `</div>`;
-    zielElement.innerHTML = html;
-}
-
-// Enter-Taste erlauben
 document.getElementById("suchEingabe").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") starteSucheODerLade();
+    if (e.key === "Enter") starteWebSuche();
 });
 </script>
 
